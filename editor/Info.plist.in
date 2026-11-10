@@ -18,6 +18,8 @@
     <string>${MACOSX_BUNDLE_SHORT_VERSION_STRING}</string>
     <key>CFBundleVersion</key>
     <string>${MACOSX_BUNDLE_BUNDLE_VERSION}</string>
+    <key>NSMotionUsageDescription</key>
+    <string>Aureon Editor reads the motion sensors in AirPods so that the Game view can follow your head.</string>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSSupportsAutomaticGraphicsSwitching</key>

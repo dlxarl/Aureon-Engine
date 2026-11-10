@@ -2316,6 +2316,36 @@ namespace {
         CHECK(!SceneSerializer::deserialize(R"({"version":1,"objects":[],"game":{"quests":7}})", broken, assets, &error));
     }
 
+    void testHeadTrackingCamera() {
+        GameLevel level;
+        GameSession game;
+        game.begin(level.scene);
+        game.setFirstPerson(level.scene, true);
+        CameraObject* camera = level.scene.getMainCamera();
+        CHECK(camera != nullptr);
+        if (!camera) return;
+
+        auto forwardOf = [&] { return -glm::normalize(glm::vec3(camera->getWorldMatrix()[2])); };
+
+        level.run(game, GameInput(), 0.2f);
+        const glm::vec3 straight = forwardOf();
+        const glm::vec3 eye = glm::vec3(camera->getWorldMatrix()[3]);
+
+        // The head turns the view in place, and what is heard follows it; the player does not turn.
+        GameInput turned;
+        turned.headRotation = glm::angleAxis(glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        game.update(level.scene, turned, 1.0f / 120.0f);
+        const glm::vec3 looking = forwardOf();
+        const float angle = glm::degrees(std::acos(glm::clamp(glm::dot(straight, looking), -1.0f, 1.0f)));
+        CHECK(std::fabs(angle - 30.0f) < 0.5f);
+        CHECK(glm::length(glm::vec3(camera->getWorldMatrix()[3]) - eye) < 0.01f);
+        CHECK(glm::length(game.getStatus().listenerForward - looking) < 0.001f);
+
+        // Without a tracked head the camera is exactly where the rules put it.
+        game.update(level.scene, GameInput(), 1.0f / 120.0f);
+        CHECK(glm::length(forwardOf() - straight) < 0.001f);
+    }
+
     void testGameSerialization(AssetManager& assets) {
         GameLevel level;
         Shape* hazard = level.addRole(GameRole::Hazard, glm::vec3(1.0f));
@@ -2461,6 +2491,7 @@ int main() {
         testMeshAssets(assets, project->getRoot());
         testPhysics();
         testGameRules();
+        testHeadTrackingCamera();
         testGameSerialization(assets);
         testWorldGame(assets, project->getRoot());
         testCharacterController(assets, project->getRoot());

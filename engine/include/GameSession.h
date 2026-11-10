@@ -6,6 +6,7 @@
 #include "SceneGraph.h"
 
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -34,6 +35,7 @@ struct GameInput {
     bool interact = false;      // pressed this frame: talk, take, open, ride...
     bool usePotion = false;     // pressed this frame
     int number = 0;             // a number key pressed this frame: a weapon, or a reply in a conversation
+    glm::quat headRotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);   // the head's turn from head tracking, added to the view only
 };
 
 struct GameStatus {
@@ -141,6 +143,7 @@ private:
     float killHeight = 0.0f;
     float cameraYaw = 0.0f;
     float cameraPitch = 0.0f;
+    glm::quat headRotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);   // from the last input; looks around without turning the player
     float eyeHeight = 0.0f;
     glm::vec3 cameraFocus = glm::vec3(0.0f);
 

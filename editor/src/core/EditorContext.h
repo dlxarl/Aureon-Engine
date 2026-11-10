@@ -2,6 +2,7 @@
 #include "AssetManager.h"
 #include "ConsoleLog.h"
 #include "Dialogs.h"
+#include "HeadTracking.h"
 #include "PlayController.h"
 #include "Project.h"
 #include "SceneDocument.h"
@@ -33,6 +34,7 @@ public:
     AssetManager assets;
     SceneDocument document;
     PlayController play;
+    HeadTrackingController headTracking;
     ConsoleLog console;
     Dialogs dialogs;
 

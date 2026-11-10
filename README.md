@@ -284,6 +284,34 @@ Play mode has sound when the project has an `Assets/Audio` folder; without it a 
 
 Places carry their own sound by name: objects named `River...` or `Lake...`, or ending in `Fire`, play theirs from where they stand, getting louder as the player nears and panned to the side they are on. `GameAudio` turns what `GameSession` reports into sound, and `AudioEngine` mixes it: it needs an output device, which it opens through CoreAudio on macOS and does not yet on other platforms, where a game is silent.
 
+### Head tracking
+
+The Game view can follow your head. **Window > Head Tracking** opens a panel with the source (**Off**, **Mock** or **AirPods**), a **Recenter** button, live diagnostics and the view settings. While you play in the Game view, the head's turn is added to the camera: it looks around in place, in first and third person, and what you hear turns with it. The player still walks and aims where the mouse and keys say, so a glance sideways does not turn the character.
+
+| Diagnostic | Meaning |
+| --- | --- |
+| Status | `Stopped`, `Unavailable` (this system cannot do it), `Waiting` (no device, or none sending), `Tracking`, `Error` |
+| Update rate, Samples | Measured from the sensor's own timestamps |
+| Quaternion | The latest raw orientation, in engine axes |
+| View offset | Yaw, pitch and roll of what is added to the camera, after recentering and settings |
+| Message | Why it is waiting or failed: no AirPods, access denied, system too old |
+
+Sensitivity, smoothing (seconds the view takes to catch up) and which of yaw, pitch and roll are followed are in the same panel. A device that starts sending, or comes back, is recentered by itself. **Mock** is a head that looks around by itself, with buttons to simulate a disconnect and a failure, so everything can be tried without AirPods. `aureon_headtrack` prints the mock's output in a terminal.
+
+**AirPods requirements**
+
+- macOS 14 (Sonoma) or later, built with an SDK that has `CMHeadphoneMotionManager`.
+- Headphones with motion sensors: AirPods (3rd generation), AirPods Pro (1st and 2nd generation) or AirPods Max, connected to this Mac. Other headphones are not supported.
+- Allow **Motion & Fitness** for Aureon Editor when macOS asks, or later in System Settings > Privacy & Security > Motion & Fitness. The Editor's Info.plist carries the required `NSMotionUsageDescription`.
+- Open the Editor as an app (`open build/editor/Editor.app`). macOS judges motion access against the program that started a process, so an Editor started from the middle of another app's terminal can be ended by the system. This is also why `aureon_headtrack` only has the mock.
+- AirPods report orientation only, at a rate the panel shows (not measured here, as no AirPods were available). There is no position, so the camera turns but does not lean or move.
+
+Head tracking is made of three parts, so another sensor needs no change to the camera:
+
+- `HeadTracker` (`HeadTracking.h`) is the interface of a provider: start, stop, and diagnostics holding the latest orientation. It has no platform types.
+- `HeadTrackingController` turns a provider's raw orientation into the rotation a camera adds: recentered, scaled, masked and smoothed. `GameInput::headRotation` carries it into `GameSession`, which applies it to the game camera.
+- Providers: `MockHeadTracker`, and AirPods in `CoreMotionHeadTracker.mm`, the only file that knows Core Motion. Elsewhere `createHeadTracker(HeadTrackerKind::AirPods)` gives a provider that reports `Unavailable`. A webcam or headset provider is a subclass of `HeadTrackerBase` that calls `publishSample()`, handed to `HeadTrackingController::setTracker()`.
+
 ### Making a game
 
 Any scene with a **Player** object is playable, with no code. Create one from the **Create** menu, and give other objects a role in the Inspector's **Gameplay** section:
@@ -404,8 +432,9 @@ ctest --test-dir build
 | Suite | Covers | Needs a display |
 | --- | --- | --- |
 | `project_tests` | Project creation and validation, relocation, recent projects, asset paths, import, the OBJ loader | No |
-| `render_tests` | Each render setting on the real pipeline, picking, hierarchy, serialization, physics and props, the character controller, game rules, quests, trade, interactions, wildlife, dragons and birds, turned colliders, terrain in pieces, rivers, day and night, cut-outs, glow, point lights, water, following shadows, culling, Play mode | Yes |
-| `ui_tests` | The real UI in a hidden window with scripted mouse and keyboard: selection, drag and drop, renaming, shortcuts, gizmos, asset drops, Play, game controls, the unsaved changes dialog | Yes |
+| `head_tracking_tests` | The mock provider and its states, update rate, recentering, smoothing and axis settings, loss and return of a device, the Core Motion axis conversion | No |
+| `render_tests` | Each render setting on the real pipeline, picking, hierarchy, serialization, physics and props, the character controller, game rules, quests, trade, interactions, wildlife, dragons and birds, turned colliders, terrain in pieces, rivers, day and night, cut-outs, glow, point lights, water, following shadows, culling, Play mode, the head's turn on the game camera | Yes |
+| `ui_tests` | The real UI in a hidden window with scripted mouse and keyboard: selection, drag and drop, renaming, shortcuts, gizmos, asset drops, Play, game controls, head tracking with the mock, the unsaved changes dialog | Yes |
 
 Suites that need a display report as skipped when there is none.
 
@@ -437,6 +466,7 @@ Suites that need a display report as skipped when there is none.
 
 Built and run on an Apple Silicon Mac with macOS 26. The demo's output was compared with the previous version of the engine, patched only to open a window on macOS, and frame 300 matched on every pixel.
 
+- **Head tracking with real AirPods is not tested.** No AirPods were available: the Core Motion provider compiles and starts, but its samples and the assumed axes (x right, y forward, z up) have not been checked against hardware. The mock and the conversion are covered by tests. To check: connect AirPods, choose AirPods in the panel, and see that turning, nodding and tilting move yaw, pitch and roll in View offset.
 - **Tested only through the test suites:** dropping files on the window was exercised from the point where the Editor receives them, not with a real drag from Finder.
 - **Partly tested:** the Import button opens the native file dialog, but choosing files in it was not exercised. The import behind it is covered by `project_tests`. The same applies to **Browse** and **Open project** in the launcher.
 - **Not built:** Windows and Linux. The code keeps them in mind, with typed paths in place of native dialogs, but neither has been compiled.

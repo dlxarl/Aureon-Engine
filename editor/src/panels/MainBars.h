@@ -12,6 +12,7 @@ struct PanelVisibility {
     bool project = true;
     bool console = true;
     bool renderSettings = true;
+    bool headTracking = false;
     bool codeEditor = false;
     bool audioEditor = false;
     bool terrainEditor = false;

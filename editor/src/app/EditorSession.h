@@ -10,6 +10,7 @@
 #include "InspectorPanel.h"
 #include "MainBars.h"
 #include "ProjectPanel.h"
+#include "HeadTrackingPanel.h"
 #include "RenderSettingsPanel.h"
 #include "ViewportPanel.h"
 
@@ -39,6 +40,7 @@ private:
     ProjectPanel projectPanel;
     ConsolePanel consolePanel;
     RenderSettingsPanel renderSettings;
+    HeadTrackingPanel headTrackingPanel;
     ViewportPanel viewport;
     CodeEditorPanel codeEditor;
     AudioEditorPanel audioEditor;

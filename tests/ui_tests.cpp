@@ -497,6 +497,20 @@ namespace {
         CHECK(!terrain->needsRebuild() && terrain->getMesh()->getBoundsMax().y > 0.5f);
     }
 
+    void testHeadTracking(Driver& ui, EditorContext& ctx) {
+        // The mock stands in for AirPods: the Editor feeds it through the same controller every frame.
+        ctx.headTracking.setKind(HeadTrackerKind::Mock);
+        ui.runFor(1.5);
+        const HeadTrackingDiagnostics info = ctx.headTracking.diagnostics();
+        CHECK(info.state == HeadTrackingState::Tracking);
+        CHECK(info.updateHz > 20.0f);
+        CHECK(glm::angle(ctx.headTracking.getRotation()) > 0.001f);   // the head has moved from "ahead"
+
+        ctx.headTracking.setKind(HeadTrackerKind::Off);
+        ui.runFor(0.5);
+        CHECK(glm::angle(ctx.headTracking.getRotation()) < 0.01f);   // and the view settles back
+    }
+
     void testGameControls(Driver& ui, EditorContext& ctx) {
         auto holdKey = [&](ImGuiKey key, int frames) {
             ImGui::GetIO().AddKeyEvent(key, true);
@@ -682,6 +696,7 @@ int main() {
         testUndo(ui, ctx);
         testCodeEditor(ui, ctx);
         testToolEditors(ui, ctx);
+        testHeadTracking(ui, ctx);
     }
 
     return testSummary("ui_tests");

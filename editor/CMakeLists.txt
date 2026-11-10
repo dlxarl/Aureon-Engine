@@ -61,6 +61,7 @@ set(EDITOR_SOURCES
         src/panels/AssetThumbnails.cpp
         src/panels/ConsolePanel.cpp
         src/panels/GameHud.cpp
+        src/panels/HeadTrackingPanel.cpp
         src/panels/UiLayer.cpp
         src/panels/CodeEditorPanel.cpp
         src/panels/AudioEditorPanel.cpp
@@ -126,3 +127,9 @@ engine_add_resources(Editor
             "${imgui_SOURCE_DIR}/misc/fonts/Cousine-Regular.ttf"
             "${CMAKE_CURRENT_SOURCE_DIR}/resources/fonts/Inter.ttf"
 )
+
+# Prints what the mock head tracker reports, for checking the pipeline without the Editor. It has no
+# AirPods option: macOS holds the program that launched a tool responsible for its motion access, and
+# ends the tool if that program has no NSMotionUsageDescription. Only the Editor bundle has one.
+add_executable(aureon_headtrack src/tools_headtrack.cpp)
+target_link_libraries(aureon_headtrack PRIVATE engine)

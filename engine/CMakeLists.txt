@@ -51,6 +51,7 @@ add_library(engine STATIC
         src/SceneSerializer.cpp
         src/AssetManager.cpp
         src/ObjLoader.cpp
+        src/HeadTracking.cpp
 )
 
 target_include_directories(engine
@@ -68,6 +69,11 @@ target_link_libraries(engine
 
 if (APPLE)
     target_link_libraries(engine PUBLIC "-framework AudioToolbox" "-framework CoreAudio")
+
+    # AirPods head tracking. Core Motion stays inside this one file; see HeadTracking.h.
+    target_sources(engine PRIVATE src/CoreMotionHeadTracker.mm)
+    set_source_files_properties(src/CoreMotionHeadTracker.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+    target_link_libraries(engine PUBLIC "-framework CoreMotion" "-framework Foundation")
 endif()
 
 if (WIN32)

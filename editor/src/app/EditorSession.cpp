@@ -193,6 +193,9 @@ void EditorSession::frame() {
 
     GameInput input = readGameInput(ctx);
     addMouseLook(input);
+    // The tracker runs whenever it is chosen, so its diagnostics are live; only the Game view uses it.
+    const glm::quat head = ctx.headTracking.update(deltaTime);
+    if (ctx.viewMode == ViewMode::Game) input.headRotation = head;
     ctx.play.update(deltaTime, input);
     if (ctx.play.isStopped()) ctx.scene().animate(deltaTime);   // fires burn and water moves while editing
     ctx.updateAutosave(deltaTime);
@@ -224,6 +227,7 @@ void EditorSession::frame() {
     if (panels.hierarchy) hierarchy.draw(ctx, &panels.hierarchy);
     if (panels.inspector) inspector.draw(ctx, thumbnails, &panels.inspector);
     if (panels.renderSettings) renderSettings.draw(ctx, &panels.renderSettings);
+    if (panels.headTracking) headTrackingPanel.draw(ctx, &panels.headTracking);
     projectPanel.importDroppedFiles(ctx);
     if (panels.project) projectPanel.draw(ctx, thumbnails, &panels.project);
     if (panels.console) consolePanel.draw(ctx, &panels.console);

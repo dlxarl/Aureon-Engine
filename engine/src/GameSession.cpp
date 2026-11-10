@@ -352,12 +352,17 @@ void GameSession::update(SceneGraph& scene, const GameInput& input, float deltaT
 
     cameraYaw += input.turnDegrees;
     cameraPitch = std::clamp(cameraPitch + input.lookUpDegrees, -MAX_LOOK_PITCH, MAX_LOOK_PITCH);
+    headRotation = input.headRotation;
     moveCamera(scene, deltaTime);
     placeModels(scene, deltaTime);
 
-    // Heard from where the player is, looking the way the camera does.
+    // Heard from where the player is, looking the way the camera does: with a tracked head, that
+    // includes the head's turn.
     status.listenerPosition = scene.getPlayer()->getCameraPosition();
     status.listenerForward = lookDirection();
+    if (const CameraObject* camera = scene.getMainCamera()) {
+        status.listenerForward = -glm::normalize(glm::vec3(camera->getWorldMatrix()[2]));
+    }
 }
 
 void GameSession::animate(SceneGraph& scene, float deltaTime) {
@@ -923,7 +928,7 @@ void GameSession::moveCamera(SceneGraph& scene, float deltaTime) {
         eye.y = eyeHeight;
 
         const glm::vec3 look = lookDirection();
-        camera->setWorldMatrix(glm::inverse(glm::lookAt(eye, eye + look, glm::vec3(0.0f, 1.0f, 0.0f))));
+        camera->setWorldMatrix(glm::inverse(glm::lookAt(eye, eye + look, glm::vec3(0.0f, 1.0f, 0.0f))) * glm::mat4_cast(headRotation));
         return;
     }
 
@@ -949,7 +954,7 @@ void GameSession::moveCamera(SceneGraph& scene, float deltaTime) {
         target = base + forward * CAMERA_LOOK_AHEAD;
     }
 
-    camera->setWorldMatrix(glm::inverse(glm::lookAt(eye, target, glm::vec3(0.0f, 1.0f, 0.0f))));
+    camera->setWorldMatrix(glm::inverse(glm::lookAt(eye, target, glm::vec3(0.0f, 1.0f, 0.0f))) * glm::mat4_cast(headRotation));
 }
 
 float GameSession::cameraReach(const SceneGraph& scene, glm::vec3 from, glm::vec3 direction, float distance) const {

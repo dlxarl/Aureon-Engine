@@ -23,7 +23,7 @@ namespace {
         Undo, Redo, Rename, Duplicate, Delete, FocusSelection,
         PlayStop, Pause, PlayFullscreen,
         ShowCodeEditor, ShowAudioEditor, ShowTerrainEditor, ShowModelEditor,
-        ShowHierarchy, ShowInspector, ShowProject, ShowConsole, ShowRenderSettings, ResetLayout,
+        ShowHierarchy, ShowInspector, ShowProject, ShowConsole, ShowRenderSettings, ShowHeadTracking, ResetLayout,
         Shortcuts,
         OpenSceneBase = 1000,   // plus the index into the scene list
         CreateBase = 2000,      // plus the ObjectType
@@ -181,6 +181,7 @@ void MainBars::updateNativeMenu(EditorContext& ctx, PanelVisibility& panels) {
         item("Project", ShowProject, "", true, false, panels.project),
         item("Console", ShowConsole, "", true, false, panels.console),
         item("Render Settings", ShowRenderSettings, "", true, false, panels.renderSettings),
+        item("Head Tracking", ShowHeadTracking, "", true, false, panels.headTracking),
         separator(),
         item("Reset layout", ResetLayout),
     }));
@@ -239,6 +240,7 @@ void MainBars::runCommand(int command, EditorContext& ctx, PanelVisibility& pane
         case ShowProject: panels.project = !panels.project; break;
         case ShowConsole: panels.console = !panels.console; break;
         case ShowRenderSettings: panels.renderSettings = !panels.renderSettings; break;
+        case ShowHeadTracking: panels.headTracking = !panels.headTracking; break;
         case ResetLayout: resetLayout = true; break;
         case Shortcuts: ctx.dialogs.shortcuts(); break;
         default: break;
@@ -359,6 +361,7 @@ void MainBars::drawMenuBar(EditorContext& ctx, PanelVisibility& panels) {
         ImGui::MenuItem("Project", nullptr, &panels.project);
         ImGui::MenuItem("Console", nullptr, &panels.console);
         ImGui::MenuItem("Render Settings", nullptr, &panels.renderSettings);
+        ImGui::MenuItem("Head Tracking", nullptr, &panels.headTracking);
         ImGui::Separator();
         if (ImGui::MenuItem("Reset layout")) resetLayout = true;
         ImGui::EndMenu();

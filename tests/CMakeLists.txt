@@ -6,6 +6,10 @@ add_executable(audio_tests audio_tests.cpp)
 target_link_libraries(audio_tests PRIVATE engine)
 add_test(NAME audio_tests COMMAND audio_tests)
 
+add_executable(head_tracking_tests head_tracking_tests.cpp)
+target_link_libraries(head_tracking_tests PRIVATE engine)
+add_test(NAME head_tracking_tests COMMAND head_tracking_tests)
+
 # These need a window system. Without one they exit with 77, which CTest reports as a skip.
 foreach(test_name render_tests ui_tests)
     add_executable(${test_name} ${test_name}.cpp)
