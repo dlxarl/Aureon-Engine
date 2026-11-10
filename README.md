@@ -447,4 +447,4 @@ Contributions and improvements are welcome. For larger changes, open an issue to
 
 ## License
 
-No license file is currently present in this repository. Until a license is added, the source code remains subject to the default copyright rules; do not assume permission for unrestricted reuse or redistribution.
+MIT
